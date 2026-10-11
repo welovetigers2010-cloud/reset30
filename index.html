@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>RESET·30 猛攻计划</title>
+<style>
+:root{
+  --bg:#070707; --panel:#0E0E0D; --panel2:#131311;
+  --ink:#F2F2EC; --dim:#7C7C74; --line:#26261F;
+  --acid:#D6FF3D; --acid-dim:rgba(214,255,61,.14);
+  --hot:#FF6B35; --hot-dim:rgba(255,107,53,.12);
+  --mono:ui-monospace,"SF Mono","JetBrains Mono",Consolas,"Courier New",monospace;
+  --disp:"Arial Black","Avenir Next Condensed",-apple-system,"PingFang SC",sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg); color:var(--ink);
+  background-image:
+    linear-gradient(rgba(214,255,61,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(214,255,61,.025) 1px, transparent 1px);
+  background-size:44px 44px;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue","Segoe UI",sans-serif;
+  max-width:640px; margin:0 auto; padding:0 18px calc(48px + env(safe-area-inset-bottom));
+  -webkit-font-smoothing:antialiased;
+}
+/* ---------- header ---------- */
+header{padding:46px 0 0}
+.kicker{font-family:var(--mono); font-size:11px; color:var(--acid); letter-spacing:.28em; text-transform:uppercase}
+.kicker .sl{color:var(--dim)}
+h1{font-family:var(--disp); font-weight:900; font-style:italic; font-size:58px; line-height:.95; letter-spacing:-.02em; margin:12px 0 4px; text-transform:uppercase}
+h1 .n{color:var(--acid); font-size:74px}
+h1 .zh{display:block; font-size:26px; letter-spacing:.06em; color:var(--ink); font-style:normal; margin-top:8px; font-family:-apple-system,"PingFang SC",sans-serif; font-weight:800}
+.brief{margin-top:14px; font-size:12.5px; line-height:1.8; color:var(--dim)}
+.brief b{color:var(--ink); font-weight:600}
+.brief .hl{color:var(--acid)}
+/* ---------- hud ---------- */
+.hud{display:flex; gap:0; border:1px solid var(--line); background:var(--panel); margin-top:24px}
+.hud .cell{flex:1; padding:16px 14px 14px; border-right:1px solid var(--line)}
+.hud .cell:last-child{border-right:none}
+.hud .num{font-family:var(--disp); font-weight:900; font-style:italic; font-size:34px; line-height:1; letter-spacing:-.01em}
+.hud .num em{font-style:italic; font-size:16px; color:var(--dim); margin-left:2px}
+.hud .cell.g .num{color:var(--acid)}
+.hud .cell.o .num{color:var(--hot)}
+.hud .lab{font-family:var(--mono); font-size:9px; letter-spacing:.22em; color:var(--dim); margin-top:7px; text-transform:uppercase}
+/* ---------- phases ---------- */
+.phases{display:flex; gap:4px; margin:18px 0 6px}
+.phases span{flex:1; height:6px; background:var(--panel2); border:1px solid var(--line); position:relative; overflow:hidden}
+.phases span i{position:absolute; inset:0; width:0; background:var(--acid); box-shadow:0 0 12px rgba(214,255,61,.5); transition:width .5s ease}
+.plabels{display:flex; gap:4px; margin-bottom:28px}
+.plabels span{flex:1; font-family:var(--mono); font-size:8.5px; letter-spacing:.12em; color:var(--dim); text-align:center; padding-top:5px; white-space:nowrap; overflow:hidden}
+/* ---------- week ---------- */
+.week{border:1px solid var(--line); background:var(--panel); margin-bottom:14px}
+.week-head{display:flex; align-items:center; gap:12px; padding:16px 16px; cursor:pointer; user-select:none}
+.wk-tag{
+  font-family:var(--disp); font-weight:900; font-style:italic; font-size:15px; letter-spacing:.02em;
+  background:var(--ink); color:var(--bg); padding:7px 10px 6px; flex:none; line-height:1;
+  clip-path:polygon(0 0,100% 0,calc(100% - 8px) 100%,0 100%); transition:all .3s;
+}
+.week.done .wk-tag{background:var(--acid); box-shadow:0 0 16px rgba(214,255,61,.35)}
+.week-head .wt{flex:1; min-width:0}
+.week-head .wt .t{font-size:15px; font-weight:800; letter-spacing:.04em}
+.week-head .wt .d{font-family:var(--mono); font-size:9px; color:var(--dim); letter-spacing:.2em; margin-top:3px; text-transform:uppercase}
+.wdots{display:flex; gap:4px; flex:none}
+.wdots i{width:6px; height:6px; background:var(--panel2); border:1px solid var(--line); transform:rotate(45deg); transition:all .3s}
+.wdots i.on{background:var(--acid); border-color:var(--acid); box-shadow:0 0 6px rgba(214,255,61,.6)}
+.wdots i.rec{border-color:var(--hot); opacity:.5}
+.chev{font-family:var(--mono); font-size:11px; color:var(--dim); transition:transform .25s; flex:none}
+.week.open .chev{transform:rotate(90deg)}
+.week-body{display:none; border-top:1px solid var(--line)}
+.week.open .week-body{display:block}
+/* ---------- day ---------- */
+.day{border-top:1px solid var(--line); background:var(--panel)}
+.day:first-child{border-top:none}
+.day-row{display:flex; align-items:center; gap:14px; padding:15px 16px; cursor:pointer; position:relative}
+.dnum{
+  font-family:var(--disp); font-weight:900; font-style:italic; font-size:26px; width:52px; flex:none;
+  line-height:1; color:var(--dim); transition:color .25s; letter-spacing:-.02em;
+}
+.dnum small{display:block; font-family:var(--mono); font-size:8px; font-style:normal; font-weight:400; letter-spacing:.18em; color:var(--dim); margin-top:4px}
+.day.on .dnum{color:var(--acid); text-shadow:0 0 18px rgba(214,255,61,.55)}
+.l-main{flex:1; min-width:0}
+.l-course{font-size:14.5px; font-weight:700; letter-spacing:.02em; transition:color .25s}
+.day.on .l-course{color:var(--acid)}
+.l-sub{display:flex; align-items:center; gap:8px; margin-top:5px; flex-wrap:wrap}
+.tag-x{font-family:var(--mono); font-size:9px; color:var(--hot); border:1px solid rgba(255,107,53,.4); background:var(--hot-dim); padding:2px 7px; letter-spacing:.1em}
+.tag-len{font-family:var(--mono); font-size:10px; color:var(--dim); letter-spacing:.08em}
+.tag-len b{color:var(--ink); font-weight:600}
+.check{
+  width:30px; height:30px; flex:none; border:1.6px solid #3A3A33; transform:rotate(45deg);
+  display:flex; align-items:center; justify-content:center; transition:all .25s; background:transparent;
+}
+.check svg{width:14px; height:14px; stroke:var(--bg); stroke-width:3.4; fill:none; stroke-linecap:round; stroke-linejoin:round; opacity:0; transform:rotate(-45deg) scale(.4); transition:all .25s}
+.day.on .check{background:var(--acid); border-color:var(--acid); box-shadow:0 0 14px rgba(214,255,61,.5)}
+.day.on .check svg{opacity:1; transform:rotate(-45deg) scale(1)}
+.l-detail{max-height:0; overflow:hidden; transition:max-height .35s ease}
+.day.open-d .l-detail{max-height:220px}
+.l-detail-in{padding:2px 16px 16px 82px}
+.l-detail-in p{font-size:12.5px; color:#A8A89E; line-height:1.75; margin-bottom:7px}
+.l-detail-in .src{font-family:var(--mono); font-size:10.5px; color:var(--dim); letter-spacing:.04em}
+.l-detail-in .src b{color:var(--acid); font-weight:600}
+.l-detail-in .ex{font-size:11.5px; color:var(--hot); margin-top:5px}
+.l-detail-in .ex b{color:var(--hot); font-weight:600}
+/* ---------- recovery day ---------- */
+.day.rec .dnum{color:var(--hot)}
+.day.rec.on .dnum{color:var(--hot); text-shadow:0 0 18px rgba(255,107,53,.55)}
+.day.rec .l-course{font-size:13.5px}
+.day.rec.on .l-course{color:var(--hot)}
+.day.rec.on .check{background:var(--hot); border-color:var(--hot); box-shadow:0 0 14px rgba(255,107,53,.5)}
+.day.rec .check{border-style:dashed}
+/* ---------- footer ---------- */
+footer{margin-top:26px}
+.note{font-family:var(--mono); font-size:10px; color:var(--dim); line-height:1.9; padding:16px 0 0; border-top:1px solid var(--line); letter-spacing:.03em}
+.note b{color:#A8A89E}
+.reset-wrap{display:flex; justify-content:space-between; align-items:center; margin-top:20px}
+.reset-wrap .brand{font-family:var(--mono); font-size:9px; color:var(--dim); letter-spacing:.2em; text-transform:uppercase}
+.btn-reset{
+  font-family:var(--mono); font-size:10px; letter-spacing:.14em; color:var(--bg); background:var(--acid); border:none;
+  padding:10px 18px; cursor:pointer; font-weight:700; clip-path:polygon(8px 0,100% 0,100% 100%,0 100%);
+}
+.btn-reset:active{transform:scale(.95)}
+/* ---------- fx ---------- */
+.cf{position:fixed; z-index:99; pointer-events:none}
+#flash{position:fixed; inset:0; background:var(--acid); opacity:0; pointer-events:none; z-index:98}
+#toast{
+  position:fixed; left:50%; bottom:44px; transform:translateX(-50%) translateY(20px); opacity:0;
+  background:var(--acid); color:var(--bg); font-family:var(--mono); font-weight:700; font-size:12px; letter-spacing:.12em;
+  padding:12px 24px; transition:all .3s; pointer-events:none; white-space:nowrap; z-index:99;
+  clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);
+}
+#toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+@keyframes flashAnim{0%{opacity:.28}100%{opacity:0}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="kicker">OPERATION <span class="sl">///</span> HARD RESET</div>
+  <h1><span class="n">30</span> DAYS<br><span class="zh">100天课程 · 30天猛攻浓缩版</span></h1>
+  <p class="brief">原计划 <b>47.6 小时</b>强行压缩=日均 95 分钟，不可练。本方案精选 <span class="hl">41 节 / 20.6 小时</span>——臀腿主打等量保留、四阶段强度阶梯完整、所有肌群保持 48h 恢复窗。<b>26 个任务日 + 4 个主动恢复日</b>，日均 41 分钟，峰值 68 分钟（Day 8）。跟练视频仍在原课程 App，本页管节奏与打卡。</p>
+</header>
+
+<div class="hud">
+  <div class="cell g"><div class="num" id="hDone">0<em>/30</em></div><div class="lab">Missions Cleared</div></div>
+  <div class="cell o"><div class="num" id="hRec">0<em>/4</em></div><div class="lab">Recovery Done</div></div>
+  <div class="cell"><div class="num" id="hMin">0<em>min</em></div><div class="lab">Total Trained</div></div>
+</div>
+
+<div class="phases" id="phases"></div>
+<div class="plabels"><span>01 灌注</span><span>02 强化</span><span>03 力量</span><span>04 巅峰</span><span>05 终局</span></div>
+
+<main id="app"></main>
+
+<footer>
+  <p class="note"><b>/// BRIEFING</b>　同一肌群已保持 ≥48h 恢复间隔；橙色「+附加」为低强度功能课，与主课同日一次完成；周日的 RECOVERY 是主动恢复课（12–21min），也要跟练——它是计划的一部分，不是休息豁免。<br><b>/// WARNING</b>　本页为训练安排工具，非医疗建议。关节疼痛、孕期或身体不适请先咨询医生；训练中持续疼痛请立即停止并就医。</p>
+  <div class="reset-wrap">
+    <span class="brand">RESET·30 /// BASED ON DAY 01–100</span>
+    <button class="btn-reset" id="btnReset">重置全部</button>
+  </div>
+</footer>
+
+<div id="flash"></div>
+<div id="toast"></div>
+
+<script>
+/* ============ 数据：30 天 = 26 任务 + 4 恢复（时长=原课真实 mm:ss） ============ */
+const PLAN = [
+ {w:1, ph:0, title:"灌注期", en:"FOUNDATION", days:[
+  {d:1, wd:"周一", main:[1,"腹肌与核心训练","25:41"], ex:[11,"足弓功能建立","25:21"],
+   s:"30 天开门课：核心发力模式 + 足弓知觉同步建立——体态链条的两端今天都激活。"},
+  {d:2, wd:"周二", main:[2,"自重臀腿训练","41:08"],
+   s:"全场最长的臀腿打底课，深蹲/臀桥/弓步把动作模式刻进身体。"},
+  {d:3, wd:"周三", main:[3,"自重上半身训练","32:46"], ex:[14,"足弓功能建立","24:15"],
+   s:"上肢首练+足弓第二课；推类动作里感受肩胛先启动。"},
+  {d:4, wd:"周四", main:[4,"自重臀部训练","42:01"],
+   s:"臀部专项首秀，臀中肌灼烧感是达标信号。"},
+  {d:5, wd:"周五", main:[6,"腹肌与核心训练","26:49"], ex:[18,"髋关节功能建立","26:46"],
+   s:"核心+髋部同日双修，为下周强度爬坡打底。"},
+  {d:6, wd:"周六", main:[7,"自重全身训练","42:12"],
+   s:"原计划唯一的全身课，心率拉满但留三分余力——明天主动恢复。"},
+  {d:7, wd:"周日", rec:[5,"纠正与恢复日","12:14"], s:"主动恢复：12 分钟纠正课，认真做完比多练一组更有价值。"}
+ ]},
+ {w:2, ph:1, title:"强化期", en:"FUNCTION", days:[
+  {d:8, wd:"周一", main:[9,"臀腿训练","39:43"], ex:[25,"足弓功能建立","28:32"],
+   s:"全计划峰值日 68 分钟——臀腿+足弓双课连击，提前安排好时间。"},
+  {d:9, wd:"周二", main:[10,"上半身训练","39:15"],
+   s:"上肢加量日，动作质量优先于次数。"},
+  {d:10, wd:"周三", main:[13,"腹肌与核心训练","31:19"],
+   s:"核心进阶课，全程保持腹压，慢速控制。"},
+  {d:11, wd:"周四", main:[12,"臀部训练","34:27"], ex:[21,"髋关节功能建立","18:41"],
+   s:"臀部专项+短版髋课，注意骨盆中立。"},
+  {d:12, wd:"周五", main:[17,"肩背训练","35:31"],
+   s:"肩背重点日——YTW 与划船，肩胛骨夹紧再回位。"},
+  {d:13, wd:"周六", main:[16,"臀腿训练","31:55"], ex:[53,"全身伸展训练","17:10"],
+   s:"臀腿+伸展收尾，给第二周画完整句号。"},
+  {d:14, wd:"周日", rec:[56,"纠正与恢复日","16:04"], s:"主动恢复 16 分钟，明天进入力量期。"}
+ ]},
+ {w:3, ph:2, title:"力量期", en:"STRENGTH", days:[
+  {d:15, wd:"周一", main:[23,"臀腿训练","32:53"], ex:[28,"足弓功能建立","25:21"],
+   s:"力量期开课：负荷感上来，组间休息放宽到 60–90 秒。"},
+  {d:16, wd:"周二", main:[24,"上半身训练","42:47"],
+   s:"上肢最重的一节课，42 分钟全神贯注。"},
+  {d:17, wd:"周三", main:[20,"腹肌与核心训练","31:02"],
+   s:"核心当大肌群练，抗伸展动作为主。"},
+  {d:18, wd:"周四", main:[33,"臀部训练","35:13"], ex:[32,"髋关节功能恢复","22:51"],
+   s:"臀部+髋恢复组合，恢复版附加课别跳过。"},
+  {d:19, wd:"周五", main:[41,"肩膀及手臂训练","32:12"],
+   s:"肩三束全照顾，手臂收尾小重量多次数。"},
+  {d:20, wd:"周六", main:[40,"臀部训练","32:29"], ex:[39,"脊柱灵活性","22:10"],
+   s:"臀部+脊柱灵活双课，练完整个人会松一圈。"},
+  {d:21, wd:"周日", rec:[60,"纠正与恢复日","14:15"], s:"主动恢复 14 分钟——巅峰期在前方等你。"}
+ ]},
+ {w:4, ph:3, title:"巅峰期", en:"PEAK", days:[
+  {d:22, wd:"周一", main:[37,"臀腿训练","40:54"],
+   s:"巅峰期第一课就是 41 分钟臀腿硬仗，负重感可以上场了。"},
+  {d:23, wd:"周二", main:[52,"胸&背部训练","33:03"], ex:[77,"髋关节功能建立","19:37"],
+   s:"胸背拮抗配对+髋课，一节顶两节。"},
+  {d:24, wd:"周三", main:[50,"核心与手臂训练","31:59"],
+   s:"核心当主体、手臂当细节，张力不松。"},
+  {d:25, wd:"周四", main:[61,"臀部训练","37:07"],
+   s:"37 分钟臀部巅峰课——后侧链是体态的钥匙。"},
+  {d:26, wd:"周五", main:[66,"胸大肌&肱三头肌训练","34:44"],
+   s:"推类双拼：胸先力竭前把三头练透。"},
+  {d:27, wd:"周六", main:[82,"臀肌&腘绳肌训练","32:58"], ex:[81,"足弓功能建立","28:28"],
+   s:"臀腘后侧链+足弓收尾，61 分钟——最后的长课日。"},
+  {d:28, wd:"周日", rec:[74,"纠正与恢复日","20:50"], s:"最后一节恢复课。下周，终局。"}
+ ]},
+ {w:5, ph:4, title:"终局", en:"FINALE", days:[
+  {d:29, wd:"周一", main:[92,"上半身冲刺训练","34:31"],
+   s:"冲刺模式启动：休息更短、节奏更快，心率顶住。"},
+  {d:30, wd:"周二", main:[100,"全身冲刺训练","36:39"],
+   s:"毕业课=原计划 Day 100 本尊。练完它，30 天猛攻收官。/// MISSION COMPLETE"}
+ ]},
+];
+const WEEK_RANGE = [[1,7],[8,14],[15,21],[22,28],[29,30]];
+const PHASE_SPANS = [[1,7],[8,14],[15,21],[22,28],[29,30]];
+const T = {1:[25*60+41],2:[41*60+8],3:[32*60+46],4:[42*60+1],5:[12*60+14],6:[26*60+49],7:[42*60+12],9:[39*60+43],10:[39*60+15],11:[25*60+21],12:[34*60+27],13:[31*60+19],14:[24*60+15],16:[31*60+55],17:[35*60+31],18:[26*60+46],20:[31*60+2],21:[18*60+41],23:[32*60+53],24:[42*60+47],25:[28*60+32],28:[25*60+21],32:[22*60+51],33:[35*60+13],37:[40*60+54],38:[29*60+6],39:[22*60+10],40:[32*60+29],41:[32*60+12],50:[31*60+59],52:[33*60+3],53:[17*60+10],56:[16*60+4],60:[14*60+15],61:[37*60+7],66:[34*60+44],74:[20*60+50],77:[19*60+37],81:[28*60+28],82:[32*60+58],92:[34*60+31],100:[36*60+39]};
+const secOf = c => c ? T[c[0]][0] : 0;
+const fmt = s => Math.round(s/60);
+const KEY = "reset30_v1";
+let LOG = {};
+try{ LOG = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; }catch(e){ LOG = {}; }
+const isDone = d => !!LOG["d"+d];
+const daySec = day => secOf(day.main) + secOf(day.ex) + secOf(day.rec);
+
+/* ============ 渲染 ============ */
+const app = document.getElementById("app");
+function totalMin(){
+  let s = 0;
+  PLAN.forEach(blk=>blk.days.forEach(day=>{ if(isDone(day.d)) s += daySec(day); }));
+  return s;
+}
+function firstUndoneWeek(){
+  for(const blk of PLAN){
+    if(blk.days.filter(day=>isDone(day.d)).length < blk.days.filter(x=>!x.rec).length) return blk.w;
+  }
+  return 5;
+}
+function render(){
+  app.innerHTML = "";
+  const openW = firstUndoneWeek();
+  PLAN.forEach(blk=>{
+    const wk = document.createElement("section");
+    wk.className = "week" + (blk.w===openW?" open":"");
+    wk.id = "week"+blk.w;
+    const sq = blk.days.filter(x=>!x.rec);
+    const done = sq.filter(x=>isDone(x.d)).length;
+    if(done===sq.length) wk.classList.add("done");
+    const dots = blk.days.map(day=>`<i class="${day.rec?"rec":(isDone(day.d)?"on":"")}"></i>`).join("");
+    wk.innerHTML = `
+      <div class="week-head">
+        <div class="wk-tag">W${blk.w}</div>
+        <div class="wt"><div class="t">${blk.title}</div><div class="d">${blk.en} /// D${WEEK_RANGE[blk.w-1][0]}–${WEEK_RANGE[blk.w-1][1]}</div></div>
+        <div class="wdots">${dots}</div>
+        <span class="chev">▸</span>
+      </div>
+      <div class="week-body"></div>`;
+    const body = wk.querySelector(".week-body");
+    blk.days.forEach(day=>{
+      const on = isDone(day.d);
+      const el = document.createElement("div");
+      el.className = "day" + (day.rec?" rec":"") + (on?" on":"");
+      const main = day.main || day.rec;
+      const isRec = !!day.rec;
+      const len = secOf(day.main)+secOf(day.ex) || secOf(day.rec);
+      el.innerHTML = `
+        <div class="day-row">
+          <div class="dnum">${String(day.d).padStart(2,"0")}<small>DAY</small></div>
+          <div class="l-main">
+            <div class="l-course">${isRec?"RECOVERY · ":""}${main[1]}</div>
+            <div class="l-sub">
+              <span class="tag-len">${day.wd} /// <b>${Math.floor(len/60)}:${String(len%60).padStart(2,"0")}</b>${day.ex?` <b>+${day.ex[2]}</b>`:""}</span>
+              ${day.ex?`<span class="tag-x">+附加</span>`:""}
+              ${isRec?`<span class="tag-x">恢复</span>`:""}
+            </div>
+          </div>
+          <div class="check"><svg viewBox="0 0 24 24"><polyline points="4 12.5 10 18.5 20 6"/></svg></div>
+        </div>
+        <div class="l-detail"><div class="l-detail-in">
+          <p>${day.s}</p>
+          <p class="src">跟练来源 /// <b>原计划 ${day.main?"Day"+day.main[0]:"Day"+day.rec[0]} ${main[1]} ${main[2]}</b></p>
+          ${day.ex?`<p class="ex">＋ 同日附加：Day${day.ex[0]} ${day.ex[1]} ${day.ex[2]}（跟练完主课接着做）</p>`:""}
+        </div></div>`;
+      el.querySelector(".day-row").addEventListener("click",()=>toggle(day, el, blk));
+      body.appendChild(el);
+    });
+    wk.querySelector(".week-head").addEventListener("click",()=>wk.classList.toggle("open"));
+    app.appendChild(wk);
+  });
+  updateHud();
+}
+function updateHud(){
+  const dn = PLAN.flatMap(b=>b.days).filter(x=>!x.rec && isDone(x.d)).length;
+  const rc = PLAN.flatMap(b=>b.days).filter(x=>x.rec && isDone(x.d)).length;
+  document.getElementById("hDone").innerHTML = dn + "<em>/30</em>";
+  document.getElementById("hRec").innerHTML = rc + "<em>/4</em>";
+  document.getElementById("hMin").innerHTML = Math.round(totalMin()/60) + "<em>min</em>";
+  document.getElementById("phases").innerHTML = PHASE_SPANS.map(([a,b])=>{
+    let tot=0, dn2=0;
+    PLAN.forEach(blk=>blk.days.forEach(day=>{
+      if(day.d>=a && day.d<=b){ tot+=daySec(day); if(isDone(day.d)) dn2+=daySec(day); }
+    }));
+    return `<span><i style="width:${tot?dn2/tot*100:0}%"></i></span>`;
+  }).join("");
+}
+
+/* ============ 打卡 ============ */
+function toggle(day, el, blk){
+  const id = "d"+day.d;
+  LOG[id] = !LOG[id];
+  if(LOG[id]){
+    localStorage.setItem(KEY, JSON.stringify(LOG));
+    el.classList.add("on");
+    const r = el.querySelector(".check").getBoundingClientRect();
+    burst(r.left+15, r.top+15, 16);
+    flash();
+    const sq = blk.days.filter(x=>!x.rec);
+    const done = sq.filter(x=>isDone(x.d)).length;
+    if(!day.rec && done===sq.length){
+      setTimeout(()=>{ burst(innerWidth/2, innerHeight*.32, 46); flash(); toast(`WEEK 0${blk.w} /// CLEARED`); }, 220);
+      el.closest(".week").classList.add("done");
+    }else{
+      toast(day.rec ? `RECOVERY /// 已完成` : `DAY ${day.d} /// CLEARED`);
+    }
+  }else{
+    delete LOG[id];
+    localStorage.setItem(KEY, JSON.stringify(LOG));
+    el.classList.remove("on");
+    el.closest(".week").classList.remove("done");
+  }
+  refreshDots(blk.w);
+  updateHud();
+}
+function refreshDots(w){
+  const blk = PLAN.find(p=>p.w===w);
+  const sec = document.getElementById("week"+w);
+  if(!sec) return;
+  sec.querySelectorAll(".wdots i").forEach((dot,k)=>{
+    const day = blk.days[k];
+    if(day.rec) return;
+    dot.classList.toggle("on", isDone(day.d));
+  });
+}
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("show"), 1900);
+}
+function flash(){
+  const f = document.getElementById("flash");
+  f.style.animation = "none"; f.offsetHeight;
+  f.style.animation = "flashAnim .5s ease forwards";
+}
+
+/* ============ 粒子 ============ */
+const CF_COLORS = ["#D6FF3D","#FF6B35","#F2F2EC","#9BBF2A","#FF9C6B"];
+function burst(x, y, n){
+  for(let k=0;k<n;k++){
+    const p = document.createElement("div");
+    p.className = "cf";
+    const s = 4+Math.random()*5, c = CF_COLORS[Math.floor(Math.random()*CF_COLORS.length)];
+    p.style.cssText = `left:${x}px;top:${y}px;width:${s}px;height:${s}px;background:${c}`;
+    const tx=(Math.random()-.5)*240, ty=-Math.random()*190-40, rot=(Math.random()-.5)*560;
+    document.body.appendChild(p);
+    p.animate([
+      {transform:"translate(0,0) rotate(0)", opacity:1},
+      {transform:`translate(${tx}px,${ty}px) rotate(${rot}deg)`, opacity:0}
+    ], {duration:650+Math.random()*450, easing:"cubic-bezier(.2,.7,.3,1)"}).onfinish = ()=>p.remove();
+  }
+}
+
+/* ============ 重置 ============ */
+document.getElementById("btnReset").addEventListener("click",()=>{
+  if(confirm("清空全部打卡记录？30 天从 Day 01 重新开始。")){
+    LOG = {}; localStorage.removeItem(KEY); render();
+    toast("/// SYSTEM RESET");
+  }
+});
+
+render();
+</script>
+</body>
+</html>
